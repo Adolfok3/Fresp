@@ -7,7 +7,7 @@
 
 # Fresp
 
-Fresp is a .NET package that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage`.
+Fresp (shorthand for `fake response`) is a .NET package that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage`.
 
 ## Problem
 
