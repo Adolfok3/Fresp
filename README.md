@@ -21,7 +21,7 @@ The Fresp package helps to solve this problem by allowing developers to configur
 > Fresp is not intended for unit testing; it is recommended for use in UAT, QA, and development environments during execution.
 
 > [!WARNING]
-> By default, Fresp is disabled in the production environment, so the chance of getting a fake response in production is zero!
+> By default, Fresp is disabled in the production environment, so the chance of getting a fake response in production is zero! Unless your `ASPNETCORE_ENVIRONMENT` variable is wrong set in production server!
 
 ## Installation
 
@@ -49,7 +49,7 @@ To make `Fresp` mock and return fake responses from your `HttpClient`, use the `
 services.AddHttpClient("MyClient")
         .AddFakeResponseHandler(options =>
         {
-            options.Enabled = true;
+            options.Enabled = true; // Toggle fake responses for this client. It is recommended to use this in conjunction with configuration settings from appsettings.json.
         });
 ```
 
