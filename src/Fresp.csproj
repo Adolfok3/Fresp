@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+	<LangVersion>13</LangVersion>
+	<ImplicitUsings>disable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<Version>1.0.0</Version>
+	<Title>Fresp</Title>
+	<PackageId>Fresp</PackageId>
+	<Description>Fresp is a .NET NuGet package designed to provide fake responses for external APIs, aiding in testing environments such as DEV, UAT, HML, and QA.</Description>
+	<PackageProjectUrl>https://www.nuget.org/packages/Fresp</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/Adolfok3/Fresp</RepositoryUrl>
+	<PackageTags>dotnet;c#;.net;core;csharp;lib;library;api;webapi;rest;endpoint;httpclient;request;response;mock;wiremock;handler;delegatinghandler;fake;test;external;qa;helper;</PackageTags>
+	<Authors>Adolfok3</Authors>
+	<Copyright>MIT</Copyright>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<PackageIcon>icon.png</PackageIcon>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<NuGetAudit>true</NuGetAudit>
+	<NuGetAuditMode>all</NuGetAuditMode>
+	<NuGetAuditLevel>moderate</NuGetAuditLevel>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+	<PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+	<PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+	<PackageReference Include="Microsoft.Extensions.Http" Version="6.0.1" />
+	<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.1" />
+  </ItemGroup>
+	
+  <ItemGroup>
+	<None Include="../README.md" Pack="true" Visible="false" PackagePath="" />
+	<None Include="../resources/icon.png" Pack="true" Visible="false" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+	  <_Parameter1>Fresp.Tests</_Parameter1>
+	</AssemblyAttribute>
+	<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+	  <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+	</AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
