@@ -14,7 +14,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 9.0.x
-    - name: Restore dependencies
+    - name: Restore
       run: dotnet restore -p:NuGetAudit=true -p:NuGetAuditMode=All -p:NuGetAuditLevel=Moderate -p:TreatWarningsAsErrors=true
     - name: Build
       run: dotnet build --no-restore
@@ -22,6 +22,16 @@ jobs:
       run: |
         cd tests/Fresp.Tests
         dotnet test /p:CollectCoverage=true /p:CoverletOutput=TestResults/ /p:CoverletOutputFormat=lcov
+
+  publish-coverage:
+    needs: code-validation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 9.0.x
     - name: Publish coverage report to coveralls.io
       uses: coverallsapp/github-action@master
       with:
