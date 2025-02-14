@@ -1,7 +1,6 @@
-﻿
-using System.Net;
+﻿using System.Net;
 
-namespace Fresp.Tests;
+namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromRequest : IFakeResponseFromRequest
 {

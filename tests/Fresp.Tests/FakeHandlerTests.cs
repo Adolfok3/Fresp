@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Fresp.Tests.Mocks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace Fresp.Tests;
 
-public class FakeResponseHandlerTests
+public class FakeHandlerTests
 {
     [Fact]
     public async Task Send_InProduction_ShouldForwardRequest()
@@ -15,7 +16,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Production);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -43,7 +44,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -68,7 +69,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Production);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -96,7 +97,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -121,7 +122,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -142,7 +143,8 @@ public class FakeResponseHandlerTests
         // Arrange
         var options = new FakeOptions
         {
-            Enabled = true
+            Enabled = true,
+            ClientName = "otherName"
         };
         options.AddFakeResponseFromRequest(request =>
         {
@@ -176,7 +178,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -225,9 +227,11 @@ public class FakeResponseHandlerTests
         });
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns(Environments.Development);
-        var logger = Substitute.For<ILoggerFactory>();
-        logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var logger = Substitute.For<ILogger>();
+        logger.IsEnabled(LogLevel.Debug).Returns(true);
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        loggerFactory.CreateLogger(Arg.Any<string>()).Returns(logger);
+        var handler = new SutFakeHandler(options, "clienttest", environment, loggerFactory)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };
@@ -284,7 +288,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -349,7 +353,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };
@@ -383,7 +387,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -438,7 +442,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -489,7 +493,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };
@@ -546,7 +550,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -597,7 +601,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };
@@ -627,7 +631,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -656,7 +660,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };
@@ -685,7 +689,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockDelegatingHandler()
         };
@@ -714,7 +718,7 @@ public class FakeResponseHandlerTests
         environment.EnvironmentName.Returns(Environments.Development);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
-        var handler = new SutFakeResponseHandler(options, "clienttest", environment, logger)
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
         {
             InnerHandler = new MockResponseDelegatingHandler()
         };

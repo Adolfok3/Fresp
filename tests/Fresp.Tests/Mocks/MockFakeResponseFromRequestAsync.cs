@@ -1,14 +1,14 @@
 ﻿using System.Net;
 
-namespace Fresp.Tests;
+namespace Fresp.Tests.Mocks;
 
-internal class MockFakeResponseFromResponseAsync : IFakeResponseFromResponseAsync
+internal class MockFakeResponseFromRequestAsync : IFakeResponseFromRequestAsync
 {
-    public Func<HttpResponseMessage, Task<HttpResponseMessage?>> GetFakeResponseFromResponseAsync()
+    public Func<HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
     {
-        return async response =>
+        return async request =>
         {
-            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
             {
                 return await Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage
                 {

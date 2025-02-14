@@ -1,4 +1,4 @@
-﻿namespace Fresp.Tests;
+﻿namespace Fresp.Tests.Mocks;
 
 internal class MockDelegatingHandler : DelegatingHandler
 {

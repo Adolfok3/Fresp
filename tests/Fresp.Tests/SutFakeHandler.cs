@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Fresp.Tests;
 
-internal class SutFakeResponseHandler(FakeOptions options, string clientName, IHostEnvironment hostEnvironment, ILoggerFactory loggerFactory) : FakeHandler(options, clientName, hostEnvironment, loggerFactory)
+internal class SutFakeHandler(FakeOptions options, string clientName, IHostEnvironment hostEnvironment, ILoggerFactory loggerFactory) : FakeHandler(options, clientName, hostEnvironment, loggerFactory)
 {
     public new HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken) => base.Send(request, cancellationToken);
 

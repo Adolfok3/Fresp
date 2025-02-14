@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Fresp.Tests;
+namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromResponse : IFakeResponseFromResponse
 {
