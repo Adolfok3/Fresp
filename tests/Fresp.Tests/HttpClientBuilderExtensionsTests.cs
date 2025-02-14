@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Fresp.Tests.Mocks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Fresp.Tests;
 
@@ -12,7 +13,7 @@ public class HttpClientBuilderExtensionsTests
         builder.Name.Returns("TestClient");
 
         // Act
-        var act = () => builder.AddFakeResponseHandler();
+        var act = () => builder.AddFakeHandler();
 
         // Assert
         act.Should().NotThrow();
@@ -25,17 +26,23 @@ public class HttpClientBuilderExtensionsTests
         var builder = Substitute.For<IHttpClientBuilder>();
 
         var optionsInvoked = false;
-        Action<FakeResponseOptions> configureOptions = options =>
+        Action<FakeOptions> configureOptions = options =>
         {
             optionsInvoked = true;
             options.ClientName = "TestClient";
             options.Enabled = true;
-            options.AddFakeResponse(_ => new HttpResponseMessage());
-            options.AddFakeResponseAsync(_ => Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
+            options.AddFakeResponseFromRequest(_ => new HttpResponseMessage());
+            options.AddFakeResponseFromRequestAsync(_ => Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
+            options.AddFakeResponseFromResponse(_ => new HttpResponseMessage());
+            options.AddFakeResponseFromResponseAsync(_ => Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
+            options.AddFakeResponseFromRequest<MockFakeResponseFromRequest>();
+            options.AddFakeResponseFromRequestAsync<MockFakeResponseFromRequestAsync>();
+            options.AddFakeResponseFromResponse<MockFakeResponseFromResponse>();
+            options.AddFakeResponseFromResponseAsync<MockFakeResponseFromResponseAsync>();
         };
 
         // Act
-        var act = () => builder.AddFakeResponseHandler(configureOptions);
+        var act = () => builder.AddFakeHandler(configureOptions);
 
         // Assert
         act.Should().NotThrow();

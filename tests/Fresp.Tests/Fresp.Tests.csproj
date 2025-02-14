@@ -23,8 +23,8 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
-	<Using Include="NSubstitute"/>
-	<Using Include="FluentAssertions"/>
+	<Using Include="NSubstitute" />
+	<Using Include="FluentAssertions" />
   </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@
 	<LangVersion>13</LangVersion>
 	<ImplicitUsings>disable</ImplicitUsings>
 	<Nullable>enable</Nullable>
-	<Version>1.0.0</Version>
+	<Version>2.0.0</Version>
 	<Title>Fresp</Title>
 	<PackageId>Fresp</PackageId>
 	<Description>Fresp is a .NET NuGet package designed to provide fake responses for external APIs, aiding in testing environments such as DEV, UAT, HML, and QA.</Description>
