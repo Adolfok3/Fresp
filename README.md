@@ -5,9 +5,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/Adolfok3/Fresp/badge.svg?branch=main)](https://coveralls.io/github/Adolfok3/Fresp?branch=main)
 [![NuGet Version](https://img.shields.io/nuget/vpre/fresp)](https://www.nuget.org/packages/fresp)
 
-# Fresp
+# Fresp - Fake Responses
 
-Fresp (shorthand for `fake response`) is a .NET package that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage`.
+Fresp (shorthand for `fake response`) is a .NET package based on `DelegatingHandler` that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage` or `HttpResponseMessage`.
 
 ## Problem
 
@@ -21,7 +21,7 @@ The Fresp package helps to solve this problem by allowing developers to configur
 > Fresp is not intended for unit testing; it is recommended for use in UAT, QA, and development environments during execution.
 
 > [!WARNING]
-> By default, Fresp is disabled in the production environment, so the chance of getting a fake response in production is zero! Unless your `ASPNETCORE_ENVIRONMENT` variable is wrong set in production server!
+> Fresp has a guard to avoid execution in the production environment, so the chance of getting a fake response in production is zero! Unless your `ASPNETCORE_ENVIRONMENT` variable is incorrectly set on the production server...
 
 ## Installation
 
@@ -43,27 +43,35 @@ dotnet add package Fresp
 
 ### Adding Fake Response to your HttpClient
 
-To make `Fresp` mock and return fake responses from your `HttpClient`, use the `AddFakeResponseHandler` extension method:
+To make `Fresp` mock and return fake responses from your `HttpClient`, use the `AddFakeHandler` extension method:
 
 ```csharp
 services.AddHttpClient("MyClient")
-        .AddFakeResponseHandler(options =>
+        .AddFakeHandler(options =>
         {
-            options.Enabled = true; // Toggle fake responses for this client. It is recommended to use this in conjunction with configuration settings from appsettings.json.
+            options.Enabled = true; // Toggle fake responses for this client. It is recommended to use this in conjunction with configuration settings from appsettings.json to enable/disable easily
         });
 ```
 
 ### Configuring Fake Responses
 
-Use the method `AddFakeResponse` for synchronous request calls or `AddFakeResponseAsync` for asynchronous request calls:
+There are two ways to return fake responses, `FromRequest` and `FromResponse`:
+
+- **FromRequest**: will return a fake response <b>before</b> the request is sent to the target API, if the request predicate is matched.
+
+- **FromResponse**: will return a fake response <b>after</b> the request was sent to the target API, if the response predicate is matched.
+
+#### Fake responses from request
+
+To add a fake response from a <b>request</b>, use the method `AddFakeResponseFromRequest` for synchronous request calls or `AddFakeResponseFromRequestAsync` for asynchronous request calls:
 
 - Synchronous:
 ```csharp
 services.AddHttpClient("MyClient")
-        .AddFakeResponseHandler(options =>
+        .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponse(request =>
+            options.AddFakeResponseFromRequest(request =>
             {
               if (request.RequestUri?.AbsolutePath == "/endpoint")
               {
@@ -79,10 +87,10 @@ services.AddHttpClient("MyClient")
 - Asynchronous:
 ```csharp
 services.AddHttpClient("MyClient")
-        .AddFakeResponseHandler(options =>
+        .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponseAsync(async request =>
+            options.AddFakeResponseFromRequestAsync(async request =>
             {
               var body = await request.Content.ReadAsStringAsync();
               if (body.Contains("something"))
@@ -98,7 +106,102 @@ services.AddHttpClient("MyClient")
         });
 ```
 
-If the request predicate is matched, the following configured response will be returned. It's simple and lightweight!
+#### Fake responses from response
+
+If you need to add a fake response from a <b>response</b>, use the method `AddFakeResponseFromResponse` for synchronous request calls or `AddFakeResponseFromResponseAsync` for asynchronous request calls:
+
+- Synchronous:
+```csharp
+services.AddHttpClient("MyClient")
+        .AddFakeHandler(options =>
+        {
+            options.Enabled = true;
+            options.AddFakeResponseFromResponse(response =>
+            {
+              if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+              {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                  Content = new StringContent("Sync fake response")
+                };
+              }
+              return null;
+          });
+        });
+```
+- Asynchronous:
+```csharp
+services.AddHttpClient("MyClient")
+        .AddFakeHandler(options =>
+        {
+            options.Enabled = true;
+            options.AddFakeResponseFromResponse(async response =>
+            {
+              var body = await response.Content.ReadAsStringAsync();
+              if (body.Contains("something"))
+              {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                  Content = new StringContent("Async fake response")
+                };
+              }
+
+              return await Task.FromResult<HttpResponseMessage?>(null);
+          });
+        });
+```
+
+### Tips
+
+#### Mock API
+Fresp is a nice way to create mock APIs to test API calls during execution (similar to [WireMock-Net](https://github.com/WireMock-Net/WireMock.Net)). Just create a random `HttpClient` and configure the fake responses:
+
+```csharp
+services.AddHttpClient("FakeHttpClient")
+        .AddFakeHandler(options =>
+        {
+          // Configure your fake responses...
+        })
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://this-api-does-not-exist.com"));
+```
+
+#### Multiple Fake Responses
+
+Sometimes you can have a lot of `FromRequest` and `FromResponse` fakes configured in options. To make it cleaner, you can use classes that implement some of the interfaces: `IFakeResponseFromRequest`, `IFakeResponseFromRequestAsync`, `IFakeResponseFromResponse`, and `IFakeResponseFromResponseAsync`. E.g.:
+
+Your fake response class:
+```csharp
+public class MyFakeResponseClass : IFakeResponseFromRequestAsync
+{
+  public Func<HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
+    {
+        return async request =>
+        {
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
+            {
+                return await Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage
+                {
+                    Content = new StringContent("Faked!"),
+                    StatusCode = HttpStatusCode.OK,
+                    ReasonPhrase = "Faked"
+                });
+            }
+
+            return await Task.FromResult((HttpResponseMessage?)null);
+        };
+    }
+}
+```
+
+In the options configuration:
+```csharp
+services.AddHttpClient("MyClient")
+        .AddFakeHandler(options =>
+        {
+            options.Enabled = true;
+            options.AddFakeResponseFromRequestAsync<MyFakeResponseClass>();
+        });
+```
 
 ## License
 
