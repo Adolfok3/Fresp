@@ -1,7 +1,8 @@
 ![Fresp Icon](./resources/icon.png)
 
-[![GithubActions](https://github.com/Adolfok3/fresp/actions/workflows/main.yml/badge.svg)](https://github.com/Adolfok3/fresp/actions)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![GithubActions](https://github.com/Adolfok3/fresp/actions/workflows/main.yml/badge.svg)](https://github.com/Adolfok3/fresp/actions)
+[![Tests](https://rife2.com/tests-badge/badge/com.uwyn/tests-badge)](https://github.com/Adolfok3/Fresp/actions/workflows/main.yml)
 [![Coverage Status](https://coveralls.io/repos/github/Adolfok3/Fresp/badge.svg?branch=main)](https://coveralls.io/github/Adolfok3/Fresp?branch=main)
 [![NuGet Version](https://img.shields.io/nuget/vpre/fresp)](https://www.nuget.org/packages/fresp)
 
