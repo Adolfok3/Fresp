@@ -120,7 +120,7 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
 
     private bool UseFakeHandler()
     {
-        var isEnabled = options.Enabled && !_isProduction;
+        var isEnabled = options.Enabled && (!_isProduction || options.ForceUseInProduction);
         if (!isEnabled)
             LogDebug("Fake handler is disabled for client {ClientName}. Enabled: {Enabled} | Production: {Production}. Forwarding request to the next handler...", clientName, options.Enabled, _isProduction);
 

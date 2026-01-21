@@ -20,6 +20,11 @@ public class FakeOptions
     public bool Enabled { get; set; }
 
     /// <summary>
+    /// WARNING: Force the use of fake responses in production environment. We strongly recommend leaving this option set to false. Default is false.
+    /// </summary>
+    public bool ForceUseInProduction { get; set; }
+
+    /// <summary>
     /// The name of the client that will be used to match the <see cref="HttpClient"/>. If not provided, the name from <see cref="IHttpClientBuilder"/> will be used.
     /// </summary>
     public string? ClientName { get; set; } = null;

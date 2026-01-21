@@ -11,7 +11,10 @@ public class FakeHandlerTests
     public async Task Send_InProduction_ShouldForwardRequest()
     {
         // Arrange
-        var options = new FakeOptions();
+        var options = new FakeOptions
+        {
+            Enabled = true,
+        };
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns(Environments.Production);
         var logger = Substitute.For<ILoggerFactory>();
@@ -30,6 +33,73 @@ public class FakeHandlerTests
         response.ReasonPhrase.Should().Be("Mocked");
         var content = await response.Content.ReadAsStringAsync();
         content.Should().Be("Mocked!");
+    }
+
+    [Fact]
+    public async Task Send_InProduction_WithForceProperty_ShouldReturnFromFake()
+    {
+        // Arrange
+        var options = new FakeOptions
+        {
+            Enabled = true,
+            ClientName = "otherName",
+            ForceUseInProduction = true,
+        };
+        options.AddFakeResponseFromRequest(request =>
+        {
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake") && request.Method == HttpMethod.Post)
+            {
+                return new HttpResponseMessage
+                {
+                    Content = new StringContent("Faked!"),
+                    StatusCode = HttpStatusCode.OK,
+                    ReasonPhrase = "Faked"
+                };
+            }
+
+            return null;
+        });
+        options.AddFakeResponseFromRequest(request =>
+        {
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
+            {
+                return new HttpResponseMessage
+                {
+                    Content = new StringContent("Faked2!"),
+                    StatusCode = HttpStatusCode.OK,
+                    ReasonPhrase = "Faked2"
+                };
+            }
+
+            return null;
+        });
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.EnvironmentName.Returns(Environments.Production);
+        var logger = Substitute.For<ILoggerFactory>();
+        logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
+        {
+            InnerHandler = new MockDelegatingHandler()
+        };
+        var request = new HttpRequestMessage(HttpMethod.Post, "/must-fake");
+        var request2 = new HttpRequestMessage(HttpMethod.Get, "/must-fake-2");
+
+        // Act
+        var response = handler.Send(request, CancellationToken.None);
+        var response2 = handler.Send(request2, CancellationToken.None);
+
+        // Assert
+        response.Should().NotBeNull();
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.ReasonPhrase.Should().Be("Faked");
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Be("Faked!");
+
+        response2.Should().NotBeNull();
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        response2.ReasonPhrase.Should().Be("Faked2");
+        content = await response2.Content.ReadAsStringAsync();
+        content.Should().Be("Faked2!");
     }
 
     [Fact]
@@ -64,7 +134,10 @@ public class FakeHandlerTests
     public async Task SendAsync_InProduction_ShouldForwardRequest()
     {
         // Arrange
-        var options = new FakeOptions();
+        var options = new FakeOptions
+        {
+            Enabled = true,
+        };
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns(Environments.Production);
         var logger = Substitute.For<ILoggerFactory>();
@@ -440,6 +513,72 @@ public class FakeHandlerTests
         });
         var environment = Substitute.For<IHostEnvironment>();
         environment.EnvironmentName.Returns(Environments.Development);
+        var logger = Substitute.For<ILoggerFactory>();
+        logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
+        var handler = new SutFakeHandler(options, "clienttest", environment, logger)
+        {
+            InnerHandler = new MockDelegatingHandler()
+        };
+        var request = new HttpRequestMessage(HttpMethod.Post, "/must-fake");
+        var request2 = new HttpRequestMessage(HttpMethod.Get, "/must-fake-2");
+
+        // Act
+        var response = await handler.SendAsync(request, CancellationToken.None);
+        var response2 = await handler.SendAsync(request2, CancellationToken.None);
+
+        // Assert
+        response.Should().NotBeNull();
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.ReasonPhrase.Should().Be("Faked");
+        var content = await response.Content.ReadAsStringAsync();
+        content.Should().Be("Faked!");
+
+        response2.Should().NotBeNull();
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        response2.ReasonPhrase.Should().Be("Faked2");
+        content = await response2.Content.ReadAsStringAsync();
+        content.Should().Be("Faked2!");
+    }
+
+    [Fact]
+    public async Task SendAsync_InProduction_WithForceProperty_WithFakeResponseFromRequest_ShouldReturnFromFake()
+    {
+        // Arrange
+        var options = new FakeOptions
+        {
+            Enabled = true,
+            ForceUseInProduction = true,
+        };
+        options.AddFakeResponseFromRequestAsync(request =>
+        {
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake") && request.Method == HttpMethod.Post)
+            {
+                return Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage
+                {
+                    Content = new StringContent("Faked!"),
+                    StatusCode = HttpStatusCode.OK,
+                    ReasonPhrase = "Faked"
+                });
+            }
+
+            return Task.FromResult<HttpResponseMessage?>(null);
+        });
+        options.AddFakeResponseFromRequestAsync(request =>
+        {
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
+            {
+                return Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage
+                {
+                    Content = new StringContent("Faked2!"),
+                    StatusCode = HttpStatusCode.OK,
+                    ReasonPhrase = "Faked2"
+                });
+            }
+
+            return Task.FromResult((HttpResponseMessage?)null);
+        });
+        var environment = Substitute.For<IHostEnvironment>();
+        environment.EnvironmentName.Returns(Environments.Production);
         var logger = Substitute.For<ILoggerFactory>();
         logger.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
         var handler = new SutFakeHandler(options, "clienttest", environment, logger)
