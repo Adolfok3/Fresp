@@ -31,10 +31,10 @@ public class HttpClientBuilderExtensionsTests
             optionsInvoked = true;
             options.ClientName = "TestClient";
             options.Enabled = true;
-            options.AddFakeResponseFromRequest(_ => new HttpResponseMessage());
-            options.AddFakeResponseFromRequestAsync(_ => Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
-            options.AddFakeResponseFromResponse(_ => new HttpResponseMessage());
-            options.AddFakeResponseFromResponseAsync(_ => Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
+            options.AddFakeResponseFromRequest((sp, req) => new HttpResponseMessage());
+            options.AddFakeResponseFromRequestAsync(async (sp, req) => await Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
+            options.AddFakeResponseFromResponse((sp, res) => new HttpResponseMessage());
+            options.AddFakeResponseFromResponseAsync(async (sp, res) => await Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage()));
             options.AddFakeResponseFromRequest<MockFakeResponseFromRequest>();
             options.AddFakeResponseFromRequestAsync<MockFakeResponseFromRequestAsync>();
             options.AddFakeResponseFromResponse<MockFakeResponseFromResponse>();

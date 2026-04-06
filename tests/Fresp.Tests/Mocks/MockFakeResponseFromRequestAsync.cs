@@ -4,11 +4,11 @@ namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromRequestAsync : IFakeResponseFromRequestAsync
 {
-    public Func<HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
+    public Func<IServiceProvider, HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
     {
-        return async request =>
+        return async (sp, request) =>
         {
-            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
+            if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake") && request.Method == HttpMethod.Post)
             {
                 return await Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage
                 {
@@ -18,7 +18,7 @@ internal class MockFakeResponseFromRequestAsync : IFakeResponseFromRequestAsync
                 });
             }
 
-            return await Task.FromResult((HttpResponseMessage?)null);
+            return await Task.FromResult<HttpResponseMessage?>(null);
         };
     }
 }

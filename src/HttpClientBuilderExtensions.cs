@@ -17,7 +17,7 @@ public static class HttpClientBuilderExtensions
     {
         var handlerOptions = new FakeOptions();
         options?.Invoke(handlerOptions);
-        builder.AddHttpMessageHandler(services => new FakeHandler(handlerOptions, handlerOptions.ClientName ?? builder.Name, services.GetRequiredService<IHostEnvironment>(), services.GetRequiredService<ILoggerFactory>()));
+        builder.AddHttpMessageHandler(services => new FakeHandler(handlerOptions, handlerOptions.ClientName ?? builder.Name, services.GetRequiredService<IHostEnvironment>(), services.GetRequiredService<IServiceProvider>(), services.GetRequiredService<ILoggerFactory>()));
 
         return builder;
     }

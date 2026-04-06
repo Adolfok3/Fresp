@@ -4,9 +4,9 @@ namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromRequest : IFakeResponseFromRequest
 {
-    public Func<HttpRequestMessage, HttpResponseMessage?> GetFakeResponseFromRequest()
+    public Func<IServiceProvider, HttpRequestMessage, HttpResponseMessage?> GetFakeResponseFromRequest()
     {
-        return request =>
+        return (sp, request) =>
         {
             if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake") && request.Method == HttpMethod.Post)
             {

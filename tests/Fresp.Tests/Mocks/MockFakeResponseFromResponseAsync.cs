@@ -4,9 +4,9 @@ namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromResponseAsync : IFakeResponseFromResponseAsync
 {
-    public Func<HttpResponseMessage, Task<HttpResponseMessage?>> GetFakeResponseFromResponseAsync()
+    public Func<IServiceProvider, HttpResponseMessage, Task<HttpResponseMessage?>> GetFakeResponseFromResponseAsync()
     {
-        return async response =>
+        return async (sp, response) =>
         {
             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {
@@ -18,7 +18,7 @@ internal class MockFakeResponseFromResponseAsync : IFakeResponseFromResponseAsyn
                 });
             }
 
-            return await Task.FromResult((HttpResponseMessage?)null);
+            return await Task.FromResult<HttpResponseMessage?>(null);
         };
     }
 }
