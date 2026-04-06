@@ -4,9 +4,9 @@ namespace Fresp.Tests.Mocks;
 
 internal class MockFakeResponseFromResponse : IFakeResponseFromResponse
 {
-    public Func<HttpResponseMessage, HttpResponseMessage?> GetFakeResponseFromResponse()
+    public Func<IServiceProvider, HttpResponseMessage, HttpResponseMessage?> GetFakeResponseFromResponse()
     {
-        return response =>
+        return (sp, response) =>
         {
             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
             {

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Fresp;
 
-internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironment hostEnvironment, ILoggerFactory loggerFactory) : DelegatingHandler
+internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironment hostEnvironment, IServiceProvider serviceProvider, ILoggerFactory loggerFactory) : DelegatingHandler
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger(nameof(FakeHandler));
     private readonly bool _isProduction = hostEnvironment.IsProduction();
@@ -24,11 +24,11 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
 
     private HttpResponseMessage SendWithFakeResponseFromRequest(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        foreach (var func in options.FakeResponseFromRequests)
+        foreach (var func in options.FakeResponsesFromRequests)
         {
             try
             {
-                var response = func(request);
+                var response = func(serviceProvider, request);
                 if (response is null)
                     continue;
 
@@ -51,7 +51,7 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
         {
             try
             {
-                var response = await func(request);
+                var response = await func(serviceProvider, request);
                 if (response is null)
                     continue;
 
@@ -60,7 +60,7 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while trying to get a async fake request for client {ClientName}.", clientName);
+                _logger.LogError(ex, "An error occurred while trying to get an async fake request for client {ClientName}.", clientName);
             }
         }
 
@@ -71,12 +71,22 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
     private HttpResponseMessage SendWithFakeResponseFromResponse(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var response = base.Send(request, cancellationToken);
+        return ProcessFakeResponseFromResponseSync(response);
+    }
 
-        foreach (var func in options.FakeResponseFromResponses)
+    private async Task<HttpResponseMessage> SendWithFakeResponseFromResponseAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        var response = await base.SendAsync(request, cancellationToken);
+        return await ProcessFakeResponseFromResponseAsyncInternal(response);
+    }
+
+    private HttpResponseMessage ProcessFakeResponseFromResponseSync(HttpResponseMessage response)
+    {
+        foreach (var func in options.FakeResponsesFromResponses)
         {
             try
             {
-                var newResponse = func(response);
+                var newResponse = func(serviceProvider, response);
                 if (newResponse is null)
                     continue;
 
@@ -93,15 +103,13 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
         return response;
     }
 
-    private async Task<HttpResponseMessage> SendWithFakeResponseFromResponseAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> ProcessFakeResponseFromResponseAsyncInternal(HttpResponseMessage response)
     {
-        var response = await base.SendAsync(request, cancellationToken);
-
-        foreach (var func in options.FakeResponseFromResponsesAsync)
+        foreach (var func in options.FakeResponsesFromResponsesAsync)
         {
             try
             {
-                var newResponse = await func(response);
+                var newResponse = await func(serviceProvider, response);
                 if (newResponse is null)
                     continue;
 
@@ -110,7 +118,7 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while trying to get a async fake response for client {ClientName}.", clientName);
+                _logger.LogError(ex, "An error occurred while trying to get an async fake response for client {ClientName}.", clientName);
             }
         }
 

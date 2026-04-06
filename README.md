@@ -7,7 +7,7 @@
 
 # Fresp - Fake Responses
 
-Fresp (shorthand for `fake response`) is a .NET package based on `DelegatingHandler` that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage` or `HttpResponseMessage`.
+Fresp (shorthand for `fake response`) is a .NET package based on `DelegatingHandler` that provides a way to mock API responses through your `HttpClient` during application execution. It allows you to configure both synchronous and asynchronous fake responses based on the incoming `HttpRequestMessage` or `HttpResponseMessage`, with full access to `IServiceProvider` for dependency injection.
 
 ## Problem
 
@@ -61,6 +61,9 @@ There are two ways to return fake responses, `FromRequest` and `FromResponse`:
 
 - **FromResponse**: will return a fake response <b>after</b> the request was sent to the target API, if the response predicate is matched.
 
+> [!TIP]
+> All fake response handlers receive `IServiceProvider` as their first parameter, allowing you to resolve any registered service (databases, caches, other HttpClients, etc.).
+
 #### Fake responses from request
 
 To add a fake response from a <b>request</b>, use the method `AddFakeResponseFromRequest` for synchronous request calls or `AddFakeResponseFromRequestAsync` for asynchronous request calls:
@@ -71,7 +74,7 @@ services.AddHttpClient("MyClient")
         .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponseFromRequest(request =>
+            options.AddFakeResponseFromRequest((serviceProvider, request) =>
             {
               if (request.RequestUri?.AbsolutePath == "/endpoint")
               {
@@ -90,7 +93,7 @@ services.AddHttpClient("MyClient")
         .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponseFromRequestAsync(async request =>
+            options.AddFakeResponseFromRequestAsync(async (serviceProvider, request) =>
             {
               var body = await request.Content.ReadAsStringAsync();
               if (body.Contains("something"))
@@ -116,7 +119,7 @@ services.AddHttpClient("MyClient")
         .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponseFromResponse(response =>
+            options.AddFakeResponseFromResponse((serviceProvider, response) =>
             {
               if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
               {
@@ -135,7 +138,7 @@ services.AddHttpClient("MyClient")
         .AddFakeHandler(options =>
         {
             options.Enabled = true;
-            options.AddFakeResponseFromResponse(async response =>
+            options.AddFakeResponseFromResponseAsync(async (serviceProvider, response) =>
             {
               var body = await response.Content.ReadAsStringAsync();
               if (body.Contains("something"))
@@ -165,17 +168,79 @@ services.AddHttpClient("FakeHttpClient")
         .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://this-api-does-not-exist.com"));
 ```
 
+#### Accessing Dependencies (DI)
+
+All fake response handlers have access to the `IServiceProvider`, allowing you to resolve any registered service (databases, caches, other HttpClients, configuration, etc.):
+
+```csharp
+services.AddHttpClient("MyClient")
+        .AddFakeHandler(options =>
+        {
+            options.Enabled = true;
+            options.AddFakeResponseFromRequest((serviceProvider, request) =>
+            {
+                var db = serviceProvider.GetRequiredService<IMyDbContext>();
+                var data = db.MyEntities.FirstOrDefault();
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(data?.ToJson() ?? "no data")
+                };
+            });
+        });
+```
+
+**Async with DI:**
+```csharp
+options.AddFakeResponseFromRequestAsync(async (serviceProvider, request) =>
+{
+    var cache = serviceProvider.GetRequiredService<IDistributedCache>();
+    var cached = await cache.GetStringAsync("my-key");
+    if (cached != null)
+    {
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(cached)
+        };
+    }
+    return null;
+});
+```
+
+**From Response with DI:**
+```csharp
+options.AddFakeResponseFromResponse((serviceProvider, response) =>
+{
+    if (response.StatusCode == HttpStatusCode.InternalServerError)
+    {
+        var logger = serviceProvider.GetRequiredService<ILogger<MyService>>();
+        logger.LogWarning("API returned 500, returning fallback response");
+
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{\"fallback\": true}")
+        };
+    }
+    return null;
+});
+```
+
 #### Multiple Fake Responses
 
 Sometimes you can have a lot of `FromRequest` and `FromResponse` fakes configured in options. To make it cleaner, you can use classes that implement some of the interfaces: `IFakeResponseFromRequest`, `IFakeResponseFromRequestAsync`, `IFakeResponseFromResponse`, and `IFakeResponseFromResponseAsync`. E.g.:
 
 Your fake response class:
 ```csharp
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+
 public class MyFakeResponseClass : IFakeResponseFromRequestAsync
 {
-  public Func<HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
+    public Func<IServiceProvider, HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
     {
-        return async request =>
+        return async (sp, request) =>
         {
             if (request.RequestUri != null && request.RequestUri.ToString().EndsWith("/must-fake-2") && request.Method == HttpMethod.Get)
             {
