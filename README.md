@@ -231,11 +231,6 @@ Sometimes you can have a lot of `FromRequest` and `FromResponse` fakes configure
 
 Your fake response class:
 ```csharp
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-
 public class MyFakeResponseClass : IFakeResponseFromRequestAsync
 {
     public Func<IServiceProvider, HttpRequestMessage, Task<HttpResponseMessage?>> GetFakeResponseFromRequestAsync()
