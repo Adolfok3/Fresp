@@ -13,6 +13,7 @@
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
     <PackageReference Include="NSubstitute" Version="*" />
+    <PackageReference Include="Refit" Version="*" />
     <PackageReference Include="xunit" Version="*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="*" />
   </ItemGroup>
