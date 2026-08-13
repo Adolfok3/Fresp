@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1]
+
+### Fixed
+
+- **Disposal of the original response when replaced by a `FromResponse` fake.** When a `FromResponse` handler returned a new `HttpResponseMessage`, the original response (and its `HttpContent`) was abandoned without being disposed, leaving underlying resources alive until garbage collection. The original response is now disposed as soon as it is replaced (unless the fake returns the same instance). See [#8](https://github.com/Adolfok3/Fresp/issues/8).
+  - Thanks to [@rodri-oliveira-dev](https://github.com/rodri-oliveira-dev) for reporting the issue. 🙏
+
 ## [3.1.0]
 
 ### Added

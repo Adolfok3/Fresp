@@ -91,6 +91,9 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
                     continue;
 
                 LogDebug("Sync fake response found for client {ClientName}. Returning fake response...", clientName);
+                if (!ReferenceEquals(newResponse, response))
+                    response.Dispose();
+
                 return newResponse;
             }
             catch (Exception ex)
@@ -114,6 +117,9 @@ internal class FakeHandler(FakeOptions options, string clientName, IHostEnvironm
                     continue;
 
                 LogDebug("Async fake response found for client {ClientName}. Returning fake response...", clientName);
+                if (!ReferenceEquals(newResponse, response))
+                    response.Dispose();
+
                 return newResponse;
             }
             catch (Exception ex)
