@@ -650,6 +650,52 @@ public class FakeHandlerTests
         (await response.Content.ReadAsStringAsync()).Should().Be("DIResponseAsync!");
     }
 
+    [Fact]
+    public void Send_WithFakeResponseFromResponse_ShouldDisposeOriginalResponseWhenReplaced()
+    {
+        // Arrange
+        var options = new FakeOptions { Enabled = true };
+        options.AddFakeResponseFromResponse((sp, response) =>
+            new HttpResponseMessage { Content = new StringContent("Faked!"), StatusCode = HttpStatusCode.OK });
+        var inner = new MockTrackingResponseDelegatingHandler();
+        var handler = new SutFakeHandler(options, "clienttest", CreateDevelopmentEnvironment(), CreateServiceProvider(), CreateLoggerFactory())
+        {
+            InnerHandler = inner
+        };
+
+        // Act
+        var response = handler.Send(new HttpRequestMessage(), CancellationToken.None);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        inner.LastResponse.Should().NotBeSameAs(response);
+        var readOriginal = () => inner.LastResponse!.Content.ReadAsStringAsync();
+        readOriginal.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
+    [Fact]
+    public async Task SendAsync_WithFakeResponseFromResponse_ShouldDisposeOriginalResponseWhenReplaced()
+    {
+        // Arrange
+        var options = new FakeOptions { Enabled = true };
+        options.AddFakeResponseFromResponseAsync((sp, response) =>
+            Task.FromResult<HttpResponseMessage?>(new HttpResponseMessage { Content = new StringContent("Faked!"), StatusCode = HttpStatusCode.OK }));
+        var inner = new MockTrackingResponseDelegatingHandler();
+        var handler = new SutFakeHandler(options, "clienttest", CreateDevelopmentEnvironment(), CreateServiceProvider(), CreateLoggerFactory())
+        {
+            InnerHandler = inner
+        };
+
+        // Act
+        var response = await handler.SendAsync(new HttpRequestMessage(), CancellationToken.None);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        inner.LastResponse.Should().NotBeSameAs(response);
+        var readOriginal = () => inner.LastResponse!.Content.ReadAsStringAsync();
+        await readOriginal.Should().ThrowAsync<ObjectDisposedException>();
+    }
+
     private static IServiceProvider CreateServiceProvider() => Substitute.For<IServiceProvider>();
 
     private static IHostEnvironment CreateDevelopmentEnvironment()
